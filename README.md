@@ -1,4 +1,4 @@
-# WindowsTQ
+# WindowsPermissionEscalation
 什么是WindowsTQ，WindowsTQ是一个exe程序，专门应对Windows使用过程中需要的提权问题
 为什么Windows需要提权？不像Linux，root可以随便修改系统。Windows给予的Administrator权限在C:\和其他特殊情况下时受限，这个时候就需要提权来达到我们的目的
 目前已实现的功能：
