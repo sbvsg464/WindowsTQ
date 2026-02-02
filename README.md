@@ -23,11 +23,13 @@ educational and research purposes.
 - TrustedInstaller privilege escalation
 - UAC bypass to Administrator
 
+## Attention
+> This project is for educational and security research purposes only.
+
 ## 中文
 ## 什么是WindowsPrivilegeEscalationVulnerabilityDisplayBox
 WindowsPrivilegeEscalationVulnerabilityDisplayBox是一个exe程序，为用户检测，演示Windows里面的提权漏洞<br>
-相信我，WindowsPrivilegeEscalationVulnerabilityDisplayBox是用来演示的(坏笑)<br>
-你反正拿WindowsPrivilegeEscalationVulnerabilityDisplayBox干什么我又不知道对不对QWQ
+相信我，WindowsPrivilegeEscalationVulnerabilityDisplayBox是用来演示的
 ## 提权漏洞是什么？
 提权漏洞就是：<br>
 系统、程序、服务、驱动里存在 bug   让攻击者 不该有高权限，却能拿到高权限<br>
@@ -40,6 +42,9 @@ WindowsPrivilegeEscalationVulnerabilityDisplayBox是一个exe程序，为用户�
 提权至SYSTEM<br>
 提权至trustedinstaller<br>
 不惊动UAC的情况下提权到Administrator
+## 免责声明
+本项目仅有研究安全漏洞，预防安全漏洞的作用
+任何第三方用途均为使用者自身操作，与本仓库无关
 ## 有自己的想法吗？
 欢迎提交Issues!
 ## 发现BUG了吗？
