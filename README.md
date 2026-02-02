@@ -24,7 +24,9 @@ educational and research purposes.
 - UAC bypass to Administrator
 
 ## Attention
-> This project is for educational and security research purposes only.
+> This project is intended for educational and security research purposes only.
+> Any misuse or illegal use of this project is strictly prohibited.
+> The author takes no responsibility for any consequences resulting from its use.
 
 ## 中文
 ## 什么是WindowsPrivilegeEscalationVulnerabilityDisplayBox
@@ -43,8 +45,8 @@ WindowsPrivilegeEscalationVulnerabilityDisplayBox是一个exe程序，为用户�
 提权至trustedinstaller<br>
 不惊动UAC的情况下提权到Administrator
 ## 免责声明
-本项目仅有研究安全漏洞，预防安全漏洞的作用
-任何第三方用途均为使用者自身操作，与本仓库无关
+> 本项目仅用于安全研究与漏洞演示，主要目的是帮助理解和预防相关安全问题。
+> 请勿将其用于任何非法用途，使用者需自行承担由此产生的风险。
 ## 有自己的想法吗？
 欢迎提交Issues!
 ## 发现BUG了吗？
