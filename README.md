@@ -2,7 +2,7 @@
 # WindowsPrivilegeEscalationVulnerabilityDisplayBox
 **Language**: [English](#english) | [中文](#中文)
 
-##English
+## English
 Windows Privilege Escalation Vulnerability Display Box is a Windows security tool
 designed to demonstrate and display privilege escalation vulnerabilities for
 educational and research purposes.
@@ -23,7 +23,7 @@ educational and research purposes.
 - TrustedInstaller privilege escalation
 - UAC bypass to Administrator
 
-##中文
+## 中文
 ## 什么是WindowsPrivilegeEscalationVulnerabilityDisplayBox
 WindowsPrivilegeEscalationVulnerabilityDisplayBox是一个exe程序，为用户检测，演示Windows里面的提权漏洞<br>
 相信我，WindowsPrivilegeEscalationVulnerabilityDisplayBox是用来演示的(坏笑)<br>
