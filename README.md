@@ -16,17 +16,19 @@ educational and research purposes.
 ## Features
 - Modify PowerShell execution policy
 - Take ownership of files and directories as Administrator
-- Demonstrate Windows privilege escalation concepts
+- SYSTEM privilege escalation
 
 ## Planned Features
-- SYSTEM privilege escalation
 - TrustedInstaller privilege escalation
 - UAC bypass to Administrator
 
-## Attention
+## A disclaimer
 > This project is intended for educational and security research purposes only.
 > Any misuse or illegal use of this project is strictly prohibited.
 > The author takes no responsibility for any consequences resulting from its use.
+
+## Attention
+Actually, there is a controversy. The privilege command refers to "trustedinstaller", but "whoami" returns "SYSTEM". So, I ultimately decided to grant "SYSTEM" privileges.
 
 ## 中文
 ## 什么是WindowsPrivilegeEscalationVulnerabilityDisplayBox
@@ -38,15 +40,17 @@ WindowsPrivilegeEscalationVulnerabilityDisplayBox是一个exe程序，为用户�
 关键点：<br>
 不是“本来就有权限”，而是“不该有却拿到了”
 ## 目前已实现的功能：
-更改powershell运行策略<br>
-获取以administrator接管文件/文件夹的功能
+- 更改powershell运行策略<br>
+- 获取以administrator接管文件/文件夹的功能<br>
+- 提权至SYSTEM
 ## 正在实现的功能：
-提权至SYSTEM<br>
-提权至trustedinstaller<br>
-不惊动UAC的情况下提权到Administrator
+- 提权至trustedinstaller<br>
+- 不惊动UAC的情况下提权到Administrator
 ## 免责声明
 > 本项目仅用于安全研究与漏洞演示，主要目的是帮助理解和预防相关安全问题。
 > 请勿将其用于任何非法用途，使用者需自行承担由此产生的风险。
+## 注意
+实际上，有争议，提权命令说的是trustedinstaller，但是whoami却返回的是SYSTEM，所以，我最终决定为有SYSTEM权限
 ## 有自己的想法吗？
 欢迎提交Issues!
 ## 发现BUG了吗？
