@@ -17,9 +17,9 @@ educational and research purposes.
 - Modify PowerShell execution policy
 - Take ownership of files and directories as Administrator
 - SYSTEM privilege escalation
+- TrustedInstaller privilege escalation
 
 ## Planned Features
-- TrustedInstaller privilege escalation
 - UAC bypass to Administrator
 
 ## A disclaimer
@@ -42,9 +42,9 @@ WindowsPrivilegeEscalationVulnerabilityDisplayBox是一个exe程序，为用户�
 ## 目前已实现的功能：
 - 更改powershell运行策略<br>
 - 获取以administrator接管文件/文件夹的功能<br>
-- 提权至SYSTEM
+- 提权至SYSTEM<br>
+- 提权至trustedinstaller
 ## 正在实现的功能：
-- 提权至trustedinstaller<br>
 - 不惊动UAC的情况下提权到Administrator
 ## 免责声明
 > 本项目仅用于安全研究与漏洞演示，主要目的是帮助理解和预防相关安全问题。
