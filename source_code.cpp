@@ -8,11 +8,14 @@
 #include <stdio.h>
 #include <sddl.h>
 #include <psapi.h>
+#include <lm.h>
+#include <Aclapi.h>
 
 #pragma comment(lib, "advapi32.lib")
 #pragma comment(lib, "userenv.lib")
 #pragma comment(lib, "wtsapi32.lib")
 #pragma comment(lib, "psapi.lib")
+#pragma comment(lib, "netapi32.lib")
 
 /*
     注意!
@@ -62,7 +65,7 @@ void changePowershellPolicy() {//更改powershell执行策略
             std::cout << "未知命令\n";
             break;
     }
-    std::cout << "操作完成，按任意键返回主菜单...\n";
+    std::cout << "[+] 操作完成，按任意键返回主菜单...\n";
     system("pause");
 }
 
@@ -91,7 +94,7 @@ void WriteRegFile() {//写入注册表文件以实现右键接管文件功能
     reg.close();
     system("reg import ti.reg");
     std::filesystem::remove("ti.reg");
-    std::cout << "操作完成，按任意键返回主菜单...\n现在，右键一个文件，你将会看见一个“管理员接管（Take Ownership）”的选项，点击它即可将该文件的所有权和完全控制权限赋予administrator组\n";
+    std::cout << "[+] 操作完成，按任意键返回主菜单...\n现在，右键一个文件，你将会看见一个“管理员接管（Take Ownership）”的选项，点击它即可将该文件的所有权和完全控制权限赋予administrator组\n";
     system("pause");
 }
 
@@ -107,9 +110,9 @@ void WriteRegFile() {//写入注册表文件以实现右键接管文件功能
 
 void privilegeEscalationForTI() {//已确认，是trustedinstaller
     system("cls");
-    std::cout << "正在尝试以trustedinstaller权限弹出cmd.exe，请稍候（弹出窗口后，可输入whoami /groups | findstr Trusted来检测所有者，返回NT SERVICE\\TrustedInstaller即为有trustedinstaller权限）...\n";
+    std::cout << "[+] 正在尝试以trustedinstaller权限弹出cmd.exe，请稍候（弹出窗口后，可输入whoami /groups | findstr Trusted来检测所有者，返回NT SERVICE\\TrustedInstaller即为有trustedinstaller权限）...\n";
     system("powershell -NoProfile -ExecutionPolicy Bypass -Command \"Install-Module -Name NtObjectManager -Force -Scope CurrentUser; Import-Module NtObjectManager; sc.exe start TrustedInstaller; Set-NtTokenPrivilege SeDebugPrivilege; $p = Get-NtProcess -Name TrustedInstaller.exe; New-Win32Process cmd.exe -CreationFlags NewConsole -ParentProcess $p\"");
-    std::cout << "操作完成，按任意键返回主菜单...\n";
+    std::cout << "[+] 操作完成，按任意键返回主菜单...\n";
     system("pause");
 }
 
@@ -291,7 +294,7 @@ bool RunAsPureSystem() {
     system("pause");
     // 必须启用调试权限才能打开 SYSTEM 进程
     if (!EnablePrivilege(SE_DEBUG_NAME)) {
-        std::cerr << "启用 SeDebugPrivilege 失败\n";
+        std::cerr << "[-] 启用 SeDebugPrivilege 失败\n";
         return false;
     }
     EnablePrivilege(SE_DEBUG_NAME);              // 打开进程
@@ -299,24 +302,24 @@ bool RunAsPureSystem() {
     EnablePrivilege(SE_ASSIGNPRIMARYTOKEN_NAME);
     DWORD pid = FindPureSystemProcess();
     if (pid == 0) {
-        std::cerr << "未找到纯 SYSTEM 进程\n";
+        std::cerr << "[-] 未找到纯 SYSTEM 进程\n";
         return false;
     }
-    std::cout << "[*] 找到纯净的 SYSTEM 进程 PID: " << pid << "\n";
+    std::cout << "[+] 找到纯净的 SYSTEM 进程 PID: " << pid << "\n";
     HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, pid);
     if (!hProcess) {
-        std::cerr << "OpenProcess 失败: " << GetLastError() << "\n";
+        std::cerr << "[-] OpenProcess 失败: " << GetLastError() << "\n";
         return false;
     }
     HANDLE hToken = NULL;
     if (!OpenProcessToken(hProcess, TOKEN_DUPLICATE | TOKEN_ASSIGN_PRIMARY | TOKEN_QUERY, &hToken)) {
-        std::cerr << "OpenProcessToken 失败: " << GetLastError() << "\n";
+        std::cerr << "[-] OpenProcessToken 失败: " << GetLastError() << "\n";
         CloseHandle(hProcess);
         return false;
     }
     HANDLE hDupToken = NULL;
     if (!DuplicateTokenEx(hToken, MAXIMUM_ALLOWED, NULL, SecurityImpersonation, TokenPrimary, &hDupToken)) {
-        std::cerr << "DuplicateTokenEx 失败: " << GetLastError() << "\n";
+        std::cerr << "[-] DuplicateTokenEx 失败: " << GetLastError() << "\n";
         CloseHandle(hToken);
         CloseHandle(hProcess);
         return false;
@@ -343,7 +346,7 @@ bool RunAsPureSystem() {
         &pi
     );
     if (!success) {
-        std::cerr << "CreateProcessAsUserW 失败: " << GetLastError() << "\n";
+        std::cerr << "[-] CreateProcessAsUserW 失败: " << GetLastError() << "\n";
     } else {
         std::cout << "[+] 成功创建纯 SYSTEM 进程，PID: " << pi.dwProcessId << "\n";
         CloseHandle(pi.hProcess);
@@ -355,9 +358,9 @@ bool RunAsPureSystem() {
     return success;
 }
 
-void beforeRunAsSystem() {
+void beforeRunAsSystem() {//先让程序有trustedinstaller权限再启动SYSTEM cmd
     system("cls");
-    std::cout << "请稍等\n";
+    std::cout << "[+] 请稍等\n";
     if (IsTrustedInstaller()) {
         std::cout << "[*] 当前已经是trustedinstaller权限\n";
         RunAsPureSystem();
@@ -378,6 +381,137 @@ void beforeRunAsSystem() {
     }
 }
 
+bool IsAdministratorDisabled() {//检测Administrator是否被禁用
+    LPUSER_INFO_4 info = nullptr;
+    if (NetUserGetInfo(nullptr, L"Administrator", 4, (LPBYTE*)&info) != NERR_Success)
+        return true;
+    bool disabled = info->usri4_flags & UF_ACCOUNTDISABLE;
+    NetApiBufferFree(info);
+    return disabled;
+}
+
+bool SetAdministratorPassword(const std::wstring& password) {//给Administrator设置密码
+    USER_INFO_1003 info{};
+    info.usri1003_password = const_cast<LPWSTR>(password.c_str());
+    DWORD err = 0;
+    NET_API_STATUS status = NetUserSetInfo(
+        nullptr,
+        L"Administrator",
+        1003,
+        (LPBYTE)&info,
+        &err
+    );
+    return status == NERR_Success;
+}
+
+bool EnableAdministrator() {//启用Administrator
+    USER_INFO_1008 info{};
+    info.usri1008_flags = UF_SCRIPT; // 不包含 UF_ACCOUNTDISABLE
+
+    DWORD err = 0;
+    NET_API_STATUS status = NetUserSetInfo(
+        nullptr,
+        L"Administrator",
+        1008,
+        (LPBYTE)&info,
+        &err
+    );
+    return status == NERR_Success;
+}
+
+std::wstring ReadPasswordMasked() {//密码隐藏
+    std::wstring password;
+    wchar_t ch;
+    while ((ch = _getwch()) != L'\r') {
+        if (ch == L'\b') {
+            if (!password.empty()) {
+                password.pop_back();
+                std::wcout << L"\b \b";
+            }
+        } else {
+            password.push_back(ch);
+            std::wcout << L"#";
+        }
+    }
+    std::wcout << L"\n";
+    return password;
+}
+
+PSID GetCurrentUserSid() {//获取当前用户的sid
+    HANDLE token = nullptr;
+    OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &token);
+
+    DWORD size = 0;
+    GetTokenInformation(token, TokenUser, nullptr, 0, &size);
+
+    PTOKEN_USER user =
+        (PTOKEN_USER)malloc(size);
+
+    GetTokenInformation(token, TokenUser, user, size, &size);
+
+    CloseHandle(token);
+    return user->User.Sid; // 注意：不要 free
+}
+
+bool GrantFullControlToCurrentUser(const std::wstring& path) {//授予完全控制权限
+    PSID userSid = GetCurrentUserSid();
+    if (!userSid) return false;
+    EXPLICIT_ACCESSW ea{};
+    ea.grfAccessPermissions = GENERIC_ALL;
+    ea.grfAccessMode = GRANT_ACCESS;
+    ea.grfInheritance = SUB_CONTAINERS_AND_OBJECTS_INHERIT;
+    ea.Trustee.TrusteeForm = TRUSTEE_IS_SID;
+    ea.Trustee.TrusteeType = TRUSTEE_IS_USER;
+    ea.Trustee.ptstrName = (LPWSTR)userSid;
+    PACL oldDacl = nullptr;
+    PACL newDacl = nullptr;
+    PSECURITY_DESCRIPTOR sd = nullptr;
+    DWORD res = GetNamedSecurityInfoW(
+        path.c_str(),
+        SE_FILE_OBJECT,
+        DACL_SECURITY_INFORMATION,
+        nullptr,
+        nullptr,
+        &oldDacl,
+        nullptr,
+        &sd
+    );
+    if (res != ERROR_SUCCESS)
+        return false;
+    res = SetEntriesInAclW(1, &ea, oldDacl, &newDacl);
+    if (res != ERROR_SUCCESS)
+        return false;
+    res = SetNamedSecurityInfoW(
+        (LPWSTR)path.c_str(),
+        SE_FILE_OBJECT,
+        DACL_SECURITY_INFORMATION,
+        nullptr,
+        nullptr,
+        newDacl,
+        nullptr
+    );
+    if (sd) LocalFree(sd);
+    if (newDacl) LocalFree(newDacl);
+    return res == ERROR_SUCCESS;
+}
+
+void helpCenter() {//帮助中心
+    system("cls");
+    std::cout << "帮助中心(介绍什么时候他们有用):\n"
+    "1.更改PowerShell执行策略: 想执行ps1的时候被拦截，不是你自己代码的问题!\n"
+    "2.获取以administrator接管文件/文件夹功能: 使Administrator是文件夹的拥有者，搭配功能8可以让当前用户获取对文件夹的完全控制权限\n"
+    "3.获取有trustedinstaller权限的cmd: 执行操作被trustedinstaller拦截的时候，比如格式化System32\n"
+    "4.获取有SYSTEM权限的cmd: 以SYSTEM权限打开一个命令提示符窗口: 执行操作被SYSTEM拦截的时候，比如格式化ProgramData\n"
+    "5.检查当前程序权限: 帮助用户检查是否拥有Administrator、trustedinstaller或SYSTEM权限\n"
+    "6.将本程序提权为trustedinstaller: 将当前程序提升为trustedinstaller权限\n"
+    "7.强开Administrator账户(支持Windows 10/11 Home): 在Windows 7 8 8.x 10 11中Administrator默认禁用状态(不是Administrator权限被禁用，是Administrator这个账户被禁用)\n"
+    "8.让此账户获取指定文件夹的完全控制权限: 赋予此账户对指定文件夹的完全控制权限(如果操作失败，可以搭配功能2使用)\n"
+    "e.exit: 退出程序\n"
+    "h.help: 显示此帮助信息\n";
+    std::cout << "[+] 操作完成，按任意键返回主菜单...\n";
+    system("pause");
+}
+
 int main(int argc, char* argv[]) {
     system("chcp 65001 > nul");
     if (!IsRunAsAdmin()) {
@@ -393,9 +527,10 @@ int main(int argc, char* argv[]) {
     }
 h:
     system("cls");
-    std::cout << "欢迎!版本:3.1 release\n请选择你想要的提权操作:\n"
+    std::cout << "欢迎!版本:4.0 release\n请选择你想要的提权操作:\n"
     "1.更改PowerShell执行策略\n2.获取以administrator接管文件/文件夹功能\n3.获取有trustedinstaller权限的cmd\n"
-    "4.获取有SYSTEM权限的cmd\n5.检查当前程序权限\n6.将本程序提权为trustedinstaller\ne.exit\n";
+    "4.获取有SYSTEM权限的cmd\n5.检查当前程序权限\n6.将本程序提权为trustedinstaller\n7.强开Administrator账户(支持Windows 10/11 Home)\n"
+    "8.让此账户获取指定文件夹的完全控制权限\ne.exit\nh.help\n";
     char option;
     std::cin >> option;
     switch (option) {
@@ -407,18 +542,18 @@ h:
             break;
         case '3':
             privilegeEscalationForTI();
-            std::cout << "如果启动成功，在新窗口输入whoami /groups | findstr Trusted\n有 NT SERVICE\\TrustedInstaller 行，说明成功获取了trustedinstaller权限\n";
+            std::cout << "[+]如果启动成功，在新窗口输入whoami /groups | findstr Trusted\n有 NT SERVICE\\TrustedInstaller 行，说明成功获取了trustedinstaller权限\n";
             system("pause");
             break;
         case '4':
             beforeRunAsSystem();
-            std::cout << "如果启动成功，在新窗口输入whoami /user\n返回nt authority\\system（或者输入whoami /groups | findstr Trusted无结果），说明成功获取了SYSTEM权限\n";
+            std::cout << "[+]如果启动成功，在新窗口输入whoami /user\n返回nt authority\\system（或者输入whoami /groups | findstr Trusted无结果），说明成功获取了SYSTEM权限\n";
             system("pause");
             break;
         case '5':
             system("whoami");
             system("whoami /groups | findstr Trusted");
-            std::cout << "trustedinstaller和SYSTEM都会返回nt authority\\system\n";
+            std::cout << "[+] trustedinstaller和SYSTEM都会返回nt authority\\system\n";
             system("pause");
             break;
         case '6':
@@ -429,14 +564,62 @@ h:
                 break;
             }
             beforeRunAsSystem();
-            std::cout << "完成！\n";
+            std::cout << "[+] 完成！\n";
             system("pause");
             break;
+        case '7':
+            {
+                if (!IsAdministratorDisabled()) {
+                    std::cout << "[*] Administrator账户已开启，无需操作，按任意键返回主菜单...\n";
+                    system("pause");
+                    break;
+                }
+                std::cout << "请输入要设置的Administrator密码（建议复杂密码）: ";
+                std::wstring password = ReadPasswordMasked();
+                std::cout << "请再次输入密码以确认: ";
+                std::wstring confirmPassword = ReadPasswordMasked();
+                if (password != confirmPassword) {
+                    std::cout << "[-] 两次输入的密码不匹配，操作取消，按任意键返回主菜单...\n";
+                    system("pause");
+                    break;
+                }
+                if (SetAdministratorPassword(password) && EnableAdministrator()) {
+                    std::cout << "[+] 成功启用Administrator账户并设置密码，按任意键返回主菜单...\n";
+                } 
+                else {
+                    std::cout << "[-] 启用Administrator账户失败，按任意键返回主菜单...\n";
+                }
+                system("pause");
+                break;
+            }
+        case '8':
+            {
+                system("cls");
+                std::cout << "请输入要赋予完全控制权限的文件夹路径(可带引号): ";
+                std::wstring folderPath;
+                std::wcin >> folderPath;
+                if (GrantFullControlToCurrentUser(folderPath)) {
+                    std::cout << "[+] 成功赋予当前用户对该文件夹的完全控制权限，按任意键返回主菜单...\n";
+                } else {
+                    std::cout << "[-] 赋予权限失败，可能是路径错误或权限不足，按任意键返回主菜单...\n";
+                }
+                system("pause");
+                break;
+            }
         case 'e':
-            std::cout << "已退出，代码:0\n";
-            goto here;
+            {
+                int ret = MessageBoxW(nullptr, L"不要退出好不好，我想一直陪着主人喵", L"要退出了喵!", MB_ICONINFORMATION | MB_OKCANCEL);
+                if (ret != IDOK) {
+                    break;
+                }
+                std::cout << "[+] 已退出，代码:0\n";
+                goto here;
+            }
+        case 'h':
+            helpCenter();
+            break;
         default:
-            std::cout << "未知命令\n";
+            std::cout << "[-] 未知命令\n";
             system("pause");
             break;
     }
