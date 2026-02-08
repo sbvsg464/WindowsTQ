@@ -2,6 +2,8 @@
 
 int main() {
     system("chcp 65001 > nul");
+    std::ios::sync_with_stdio(false);
+    std::cin.tie(nullptr);
     if (!IsRunAsAdmin()) {
         MessageBoxW(nullptr, L"正在尝试申请Administrator权限", L"权限不足", MB_ICONINFORMATION | MB_OK);
         if (elevateProcess()) {
