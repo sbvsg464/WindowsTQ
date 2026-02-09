@@ -11,7 +11,7 @@
 void ShowMainMenu() {
 here:
     system("cls");
-    std::cout << "欢迎!版本:5.1 release\n请选择你想要的提权操作:\n"
+    std::cout << "欢迎!版本:5.2 release\n请选择你想要的提权操作:\n"
     "1.更改PowerShell执行策略\n2.获取以administrator接管文件/文件夹功能\n3.获取有trustedinstaller权限的cmd\n"
     "4.获取有SYSTEM权限的cmd\n5.检查当前程序权限\n6.将本程序提权为trustedinstaller\n7.强开Administrator账户(支持Windows 10/11 Home)\n"
     "8.让此账户获取指定文件夹的完全控制权限\n9.打印所有特权进程\ne.exit\nh.help\n";
